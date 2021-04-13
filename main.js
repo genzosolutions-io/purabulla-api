@@ -156,7 +156,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _score_calculator_score_calculator_module__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./score-calculator/score-calculator.module */ "./apps/api/src/app/score-calculator/score-calculator.module.ts");
 /* harmony import */ var _nestjs_config__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 /* harmony import */ var _nestjs_config__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(_nestjs_config__WEBPACK_IMPORTED_MODULE_11__);
-var _a, _b;
+/* harmony import */ var _cron_jobs_cron_service__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./cron-jobs/cron.service */ "./apps/api/src/app/cron-jobs/cron.service.ts");
+/* harmony import */ var _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./endpoints/articles/article.service */ "./apps/api/src/app/endpoints/articles/article.service.ts");
+var _a, _b, _c, _d;
+
+
 
 
 
@@ -171,8 +175,10 @@ var _a, _b;
 
 // mongodb+srv://genzosolutions:<password>@cluster0.pgnb2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
 let AppModule = class AppModule {
-    constructor(rolesService, mongoConnection) {
+    constructor(rolesService, cronService, articlesService, mongoConnection) {
         this.rolesService = rolesService;
+        this.cronService = cronService;
+        this.articlesService = articlesService;
         this.mongoConnection = mongoConnection;
     }
     onModuleInit() {
@@ -185,10 +191,18 @@ let AppModule = class AppModule {
                     yield this.rolesService.initRoles();
                     _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"].log('Roles collection initialized...');
                 }
+                /** Uncomment if database has been deployed and has articles without default votes */
+                // this.setDefaultVotes();
             }
             catch (error) {
                 _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"].error('Something happened listing mongo collection', error);
             }
+        });
+    }
+    setDefaultVotes() {
+        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+            const articles = yield this.articlesService.findAll();
+            this.cronService.setDefaultVotes(true, articles);
         });
     }
 };
@@ -197,7 +211,7 @@ AppModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
         imports: [
             _nestjs_config__WEBPACK_IMPORTED_MODULE_11__["ConfigModule"].forRoot(),
             _nestjs_mongoose__WEBPACK_IMPORTED_MODULE_4__["MongooseModule"].forRoot(process.env.MONGO_URL, {
-                useCreateIndex: true
+                useCreateIndex: true,
             }),
             _endpoints_endpoints_module__WEBPACK_IMPORTED_MODULE_7__["EndpointsModule"],
             _cron_jobs_cron_module__WEBPACK_IMPORTED_MODULE_5__["CronJobsModule"],
@@ -207,8 +221,8 @@ AppModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
         controllers: [_app_controller__WEBPACK_IMPORTED_MODULE_2__["AppController"]],
         providers: [_app_service__WEBPACK_IMPORTED_MODULE_3__["AppService"]],
     }),
-    Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__param"])(1, Object(_nestjs_mongoose__WEBPACK_IMPORTED_MODULE_4__["InjectConnection"])()),
-    Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"])("design:paramtypes", [typeof (_a = typeof _endpoints_roles_roles_service__WEBPACK_IMPORTED_MODULE_8__["RolesService"] !== "undefined" && _endpoints_roles_roles_service__WEBPACK_IMPORTED_MODULE_8__["RolesService"]) === "function" ? _a : Object, typeof (_b = typeof mongoose__WEBPACK_IMPORTED_MODULE_9__["Connection"] !== "undefined" && mongoose__WEBPACK_IMPORTED_MODULE_9__["Connection"]) === "function" ? _b : Object])
+    Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__param"])(3, Object(_nestjs_mongoose__WEBPACK_IMPORTED_MODULE_4__["InjectConnection"])()),
+    Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"])("design:paramtypes", [typeof (_a = typeof _endpoints_roles_roles_service__WEBPACK_IMPORTED_MODULE_8__["RolesService"] !== "undefined" && _endpoints_roles_roles_service__WEBPACK_IMPORTED_MODULE_8__["RolesService"]) === "function" ? _a : Object, typeof (_b = typeof _cron_jobs_cron_service__WEBPACK_IMPORTED_MODULE_12__["CronService"] !== "undefined" && _cron_jobs_cron_service__WEBPACK_IMPORTED_MODULE_12__["CronService"]) === "function" ? _b : Object, typeof (_c = typeof _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_13__["ArticlesService"] !== "undefined" && _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_13__["ArticlesService"]) === "function" ? _c : Object, typeof (_d = typeof mongoose__WEBPACK_IMPORTED_MODULE_9__["Connection"] !== "undefined" && mongoose__WEBPACK_IMPORTED_MODULE_9__["Connection"]) === "function" ? _d : Object])
 ], AppModule);
 
 
@@ -264,7 +278,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _endpoints_articles_schemas_article_schema__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../endpoints/articles/schemas/article.schema */ "./apps/api/src/app/endpoints/articles/schemas/article.schema.ts");
 /* harmony import */ var _endpoints_sources_schemas_source_schema__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../endpoints/sources/schemas/source.schema */ "./apps/api/src/app/endpoints/sources/schemas/source.schema.ts");
 /* harmony import */ var _endpoints_sources_sources_module__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../endpoints/sources/sources.module */ "./apps/api/src/app/endpoints/sources/sources.module.ts");
-/* harmony import */ var _cron_service__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./cron.service */ "./apps/api/src/app/cron-jobs/cron.service.ts");
+/* harmony import */ var _endpoints_votes_votes_module__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../endpoints/votes/votes.module */ "./apps/api/src/app/endpoints/votes/votes.module.ts");
+/* harmony import */ var _cron_service__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./cron.service */ "./apps/api/src/app/cron-jobs/cron.service.ts");
+
 
 
 
@@ -281,10 +297,12 @@ CronJobsModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
             _nestjs_mongoose__WEBPACK_IMPORTED_MODULE_2__["MongooseModule"].forFeature([{ name: _endpoints_articles_schemas_article_schema__WEBPACK_IMPORTED_MODULE_4__["Article"].name, schema: _endpoints_articles_schemas_article_schema__WEBPACK_IMPORTED_MODULE_4__["ArticleSchema"] }, { name: _endpoints_sources_schemas_source_schema__WEBPACK_IMPORTED_MODULE_5__["Source"].name, schema: _endpoints_sources_schemas_source_schema__WEBPACK_IMPORTED_MODULE_5__["SourceSchema"] }]),
             _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["HttpModule"],
             _endpoints_articles_article_module__WEBPACK_IMPORTED_MODULE_3__["ArticlesModule"],
-            _endpoints_sources_sources_module__WEBPACK_IMPORTED_MODULE_6__["SourcesModule"]
+            _endpoints_sources_sources_module__WEBPACK_IMPORTED_MODULE_6__["SourcesModule"],
+            _endpoints_votes_votes_module__WEBPACK_IMPORTED_MODULE_7__["VotesModule"]
         ],
         controllers: [],
-        providers: [_cron_service__WEBPACK_IMPORTED_MODULE_7__["CronService"]],
+        providers: [_cron_service__WEBPACK_IMPORTED_MODULE_8__["CronService"]],
+        exports: [_cron_service__WEBPACK_IMPORTED_MODULE_8__["CronService"]]
     })
 ], CronJobsModule);
 
@@ -315,7 +333,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var url__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(url__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../endpoints/articles/article.service */ "./apps/api/src/app/endpoints/articles/article.service.ts");
 /* harmony import */ var _endpoints_sources_sources_service__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../endpoints/sources/sources.service */ "./apps/api/src/app/endpoints/sources/sources.service.ts");
-var CronService_1, _a, _b, _c;
+/* harmony import */ var _endpoints_votes_votes_service__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../endpoints/votes/votes.service */ "./apps/api/src/app/endpoints/votes/votes.service.ts");
+/* harmony import */ var mongoose__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! mongoose */ "mongoose");
+/* harmony import */ var mongoose__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(mongoose__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var html_to_text__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! html-to-text */ "html-to-text");
+/* harmony import */ var html_to_text__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(html_to_text__WEBPACK_IMPORTED_MODULE_10__);
+var CronService_1, _a, _b, _c, _d;
+
+
+
 
 
 
@@ -325,38 +351,12 @@ var CronService_1, _a, _b, _c;
 
 
 let CronService = CronService_1 = class CronService {
-    constructor(httpService, articlesService, sourcesService) {
+    constructor(httpService, articlesService, sourcesService, votesService) {
         this.httpService = httpService;
         this.articlesService = articlesService;
         this.sourcesService = sourcesService;
+        this.votesService = votesService;
         this.logger = new _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"](CronService_1.name);
-    }
-    fixDuplicates() {
-        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-            this.logger.log('Fixing duplicates...');
-            try {
-                const articles = yield this.articlesService.findAll();
-                const url_set = new Set();
-                articles.forEach((article) => {
-                    url_set.add(article.url);
-                });
-                const fixed_articles = [];
-                Array.from(url_set).forEach((url) => {
-                    for (let i = 0; i < articles.length; i++) {
-                        if (articles[i].url === url) {
-                            fixed_articles.push(articles[i]);
-                            break;
-                        }
-                    }
-                });
-                yield this.articlesService.deleteAll();
-                yield this.articlesService.insertMany(fixed_articles);
-                this.logger.log('Duplicate articles fixed!');
-            }
-            catch (error) {
-                this.logger.error('Error fixing duplicated articles...', error);
-            }
-        });
     }
     insertSources(apiData) {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
@@ -394,32 +394,6 @@ let CronService = CronService_1 = class CronService {
             }
         });
     }
-    fixSourcesDuplicates() {
-        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-            try {
-                const sources = yield this.sourcesService.findAll();
-                const sources_url = new Set();
-                sources.forEach((source) => {
-                    sources_url.add(source.url);
-                });
-                const fixed_sources = [];
-                Array.from(sources_url).forEach((url) => {
-                    for (let i = 0; i < sources.length; i++) {
-                        if (sources[i].url === url) {
-                            fixed_sources.push(sources[i]);
-                            break;
-                        }
-                    }
-                });
-                yield this.sourcesService.deleteAll();
-                yield this.sourcesService.insertMany(fixed_sources);
-                this.logger.log('Duplicated sources fixed!');
-            }
-            catch (error) {
-                this.logger.error('Something ocurred while fixing duplicated sources', error);
-            }
-        });
-    }
     checkImageUrl(image_url, source) {
         if (image_url === null || image_url === undefined) {
             return source.logoUrl;
@@ -450,6 +424,7 @@ let CronService = CronService_1 = class CronService {
     updateArticles() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             this.logger.log('Feeding database with new articles...');
+            const vzla_articles = [];
             try {
                 /** Getting data from VenezuelaHoy API */
                 const vzla_response = yield this.httpService
@@ -461,9 +436,7 @@ let CronService = CronService_1 = class CronService {
                     .toPromise();
                 if (vzla_response.data.data.length > 0) {
                     yield this.insertSources(vzla_response.data.data);
-                    // await this.fixSourcesDuplicates();
                     const sources = yield this.sourcesService.findAll();
-                    let vzla_articles = [];
                     vzla_response.data.data.forEach((obj) => {
                         for (let i = 0; i < sources.length; i++) {
                             if (sources[i].url === obj.attributes['publication-url']) {
@@ -471,7 +444,9 @@ let CronService = CronService_1 = class CronService {
                                     title: obj.attributes.title,
                                     source: sources[i]._id,
                                     author: obj.attributes.publication,
-                                    description: obj.attributes.body,
+                                    description: html_to_text__WEBPACK_IMPORTED_MODULE_10__["htmlToText"](obj.attributes.body, {
+                                        wordwrap: null,
+                                    }),
                                     url: obj.attributes.url,
                                     urlToImage: this.checkImageUrl(obj.attributes.image, sources[i]),
                                     publishedAt: obj.attributes['created-at'],
@@ -484,7 +459,7 @@ let CronService = CronService_1 = class CronService {
                         }
                     });
                     yield this.articlesService.insertMany(vzla_articles);
-                    // await this.fixDuplicates();
+                    this.setDefaultVotes(false, vzla_articles);
                 }
                 else {
                     this.newsApiFetch();
@@ -500,6 +475,70 @@ let CronService = CronService_1 = class CronService {
                 });
                 if (!flag) {
                     this.logger.log('Database has been updated!');
+                    this.setDefaultVotes(false, vzla_articles);
+                }
+            }
+        });
+    }
+    setDefaultVotes(withId, articles) {
+        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+            try {
+                if (withId) {
+                    const votes = [];
+                    articles.forEach((article) => {
+                        const yesVote = {
+                            article: article._id,
+                            user: mongoose__WEBPACK_IMPORTED_MODULE_9__["Types"].ObjectId(_environments_environment__WEBPACK_IMPORTED_MODULE_4__["environment"].default_vote_pb_user_yes),
+                            value: true,
+                        };
+                        votes.push(yesVote);
+                        const noVote = {
+                            article: article._id,
+                            user: mongoose__WEBPACK_IMPORTED_MODULE_9__["Types"].ObjectId(_environments_environment__WEBPACK_IMPORTED_MODULE_4__["environment"].default_vote_pb_user_no),
+                            value: false,
+                        };
+                        votes.push(noVote);
+                    });
+                    this.logger.log('Amount of votes to be inserted as default ' + votes.length);
+                    yield this.votesService.insertMany(votes);
+                    this.logger.log('Default votes have been inserted');
+                }
+                else {
+                    const queryArray = [];
+                    articles.forEach((a) => {
+                        queryArray.push({ url: a.url });
+                    });
+                    const results = yield this.articlesService.findArticlesByUrl(queryArray);
+                    const votes = [];
+                    results.forEach((article) => {
+                        const yesVote = {
+                            article: article._id,
+                            user: mongoose__WEBPACK_IMPORTED_MODULE_9__["Types"].ObjectId(_environments_environment__WEBPACK_IMPORTED_MODULE_4__["environment"].default_vote_pb_user_yes),
+                            value: true,
+                        };
+                        votes.push(yesVote);
+                        const noVote = {
+                            article: article._id,
+                            user: mongoose__WEBPACK_IMPORTED_MODULE_9__["Types"].ObjectId(_environments_environment__WEBPACK_IMPORTED_MODULE_4__["environment"].default_vote_pb_user_no),
+                            value: false,
+                        };
+                        votes.push(noVote);
+                    });
+                    this.logger.log('Amount of votes to be inserted as default ' + votes.length);
+                    yield this.votesService.insertMany(votes);
+                    this.logger.log('Default votes have been inserted');
+                }
+            }
+            catch (error) {
+                let flag = false;
+                error.writeErrors.forEach((writeError) => {
+                    if (writeError.code !== 11000) {
+                        this.logger.error('Something ocurred inserting or updating default votes...', error);
+                        flag = true;
+                    }
+                });
+                if (!flag) {
+                    this.logger.log('Default votes have been inserted');
                 }
             }
         });
@@ -543,7 +582,7 @@ Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
 ], CronService.prototype, "updateArticles", null);
 CronService = CronService_1 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_nestjs_common_decorators_core_injectable_decorator__WEBPACK_IMPORTED_MODULE_2__["Injectable"])(),
-    Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"])("design:paramtypes", [typeof (_a = typeof _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["HttpService"] !== "undefined" && _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["HttpService"]) === "function" ? _a : Object, typeof (_b = typeof _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_6__["ArticlesService"] !== "undefined" && _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_6__["ArticlesService"]) === "function" ? _b : Object, typeof (_c = typeof _endpoints_sources_sources_service__WEBPACK_IMPORTED_MODULE_7__["SourcesService"] !== "undefined" && _endpoints_sources_sources_service__WEBPACK_IMPORTED_MODULE_7__["SourcesService"]) === "function" ? _c : Object])
+    Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"])("design:paramtypes", [typeof (_a = typeof _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["HttpService"] !== "undefined" && _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["HttpService"]) === "function" ? _a : Object, typeof (_b = typeof _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_6__["ArticlesService"] !== "undefined" && _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_6__["ArticlesService"]) === "function" ? _b : Object, typeof (_c = typeof _endpoints_sources_sources_service__WEBPACK_IMPORTED_MODULE_7__["SourcesService"] !== "undefined" && _endpoints_sources_sources_service__WEBPACK_IMPORTED_MODULE_7__["SourcesService"]) === "function" ? _c : Object, typeof (_d = typeof _endpoints_votes_votes_service__WEBPACK_IMPORTED_MODULE_8__["VotesService"] !== "undefined" && _endpoints_votes_votes_service__WEBPACK_IMPORTED_MODULE_8__["VotesService"]) === "function" ? _d : Object])
 ], CronService);
 
 
@@ -725,7 +764,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _bookmarks_bookmarks_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../bookmarks/bookmarks.service */ "./apps/api/src/app/endpoints/bookmarks/bookmarks.service.ts");
 /* harmony import */ var _follows_follows_service__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../follows/follows.service */ "./apps/api/src/app/endpoints/follows/follows.service.ts");
 /* harmony import */ var _schemas_article_schema__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./schemas/article.schema */ "./apps/api/src/app/endpoints/articles/schemas/article.schema.ts");
-var _a, _b, _c;
+var ArticlesService_1, _a, _b, _c;
 
 
 
@@ -733,11 +772,12 @@ var _a, _b, _c;
 
 
 
-let ArticlesService = class ArticlesService {
+let ArticlesService = ArticlesService_1 = class ArticlesService {
     constructor(articleModel, followsService, bookmarksService) {
         this.articleModel = articleModel;
         this.followsService = followsService;
         this.bookmarksService = bookmarksService;
+        this.logger = new _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"](ArticlesService_1.name);
     }
     findAll() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
@@ -818,18 +858,30 @@ let ArticlesService = class ArticlesService {
             return this.articleModel.remove({}).exec();
         });
     }
+    findArticlesByUrl(queryArray) {
+        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+            if (queryArray.length > 0) {
+                return yield this.articleModel
+                    .find({ $or: queryArray })
+                    .exec();
+            }
+            else {
+                return [];
+            }
+        });
+    }
     findFollowedArticlesPaginated(id, page, limit) {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-            const follows = yield this.followsService.getUserFollows(id);
+            const follows = yield this.followsService.getRawUserFollows(id);
             const queryArray = [];
             follows.forEach((follow) => {
                 queryArray.push({ source: follow.source });
             });
             if (queryArray.length > 0) {
-                const results = yield this.articleModel
+                let results = yield this.articleModel
                     .find({ $or: queryArray })
                     .limit(limit * 1)
-                    .skip((page - 1) * 20)
+                    .skip((page - 1) * limit)
                     .sort({ publishedAt: -1 })
                     .populate('source')
                     .exec();
@@ -862,7 +914,7 @@ let ArticlesService = class ArticlesService {
         });
     }
 };
-ArticlesService = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
+ArticlesService = ArticlesService_1 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Injectable"])(),
     Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__param"])(0, Object(_nestjs_mongoose__WEBPACK_IMPORTED_MODULE_2__["InjectModel"])(_schemas_article_schema__WEBPACK_IMPORTED_MODULE_6__["Article"].name)),
     Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"])("design:paramtypes", [typeof (_a = typeof mongoose__WEBPACK_IMPORTED_MODULE_3__["Model"] !== "undefined" && mongoose__WEBPACK_IMPORTED_MODULE_3__["Model"]) === "function" ? _a : Object, typeof (_b = typeof _follows_follows_service__WEBPACK_IMPORTED_MODULE_5__["FollowsService"] !== "undefined" && _follows_follows_service__WEBPACK_IMPORTED_MODULE_5__["FollowsService"]) === "function" ? _b : Object, typeof (_c = typeof _bookmarks_bookmarks_service__WEBPACK_IMPORTED_MODULE_4__["BookmarksService"] !== "undefined" && _bookmarks_bookmarks_service__WEBPACK_IMPORTED_MODULE_4__["BookmarksService"]) === "function" ? _c : Object])
@@ -1273,7 +1325,7 @@ EndpointsModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
         ],
         controllers: [],
         providers: [],
-        exports: [_roles_roles_module__WEBPACK_IMPORTED_MODULE_8__["RolesModule"]],
+        exports: [_roles_roles_module__WEBPACK_IMPORTED_MODULE_8__["RolesModule"], _articles_article_module__WEBPACK_IMPORTED_MODULE_2__["ArticlesModule"]],
     })
 ], EndpointsModule);
 
@@ -1457,6 +1509,16 @@ let FollowsService = class FollowsService {
         });
     }
     getUserFollows(user_id) {
+        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+            return this.followModel
+                .find({})
+                .where('user')
+                .equals(mongoose__WEBPACK_IMPORTED_MODULE_3__["Types"].ObjectId(user_id))
+                .populate('source')
+                .exec();
+        });
+    }
+    getRawUserFollows(user_id) {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             return this.followModel
                 .find({})
@@ -3792,7 +3854,7 @@ let VotesService = class VotesService {
     }
     insertMany(votes) {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-            return this.voteModel.insertMany(votes);
+            return this.voteModel.insertMany(votes, { ordered: false });
         });
     }
     deleteAll() {
@@ -4104,7 +4166,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _endpoints_stops_stops_service__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../endpoints/stops/stops.service */ "./apps/api/src/app/endpoints/stops/stops.service.ts");
 /* harmony import */ var _endpoints_votes_votes_service__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../endpoints/votes/votes.service */ "./apps/api/src/app/endpoints/votes/votes.service.ts");
 /* harmony import */ var _endpoints_weights_weights_service__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../endpoints/weights/weights.service */ "./apps/api/src/app/endpoints/weights/weights.service.ts");
-var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+var ScoreCalculatorService_1, _a, _b, _c, _d, _e, _f, _g, _h, _j;
 
 
 
@@ -4123,7 +4185,7 @@ var _a, _b, _c, _d, _e, _f, _g, _h, _j;
  * baseScore = biasFactor * (postiveBiasCount + negativeBiasCount) + shareFactor * shareCount + likeFactor * likeCount + stopFactor * stopSecondsTotal + saveFactor * saveCount - skipFactor * skipCount;
  * calculatedScore = Math.round((baseScore / Math.pow(ageInHours + 2, timeDecayFactor)) * 1000000) / 1000000;
  */
-let ScoreCalculatorService = class ScoreCalculatorService {
+let ScoreCalculatorService = ScoreCalculatorService_1 = class ScoreCalculatorService {
     constructor(weightsService, articleModel, articlesService, bookmarksService, likesService, sharesService, votesService, skipsService, stopsService) {
         this.weightsService = weightsService;
         this.articleModel = articleModel;
@@ -4134,11 +4196,12 @@ let ScoreCalculatorService = class ScoreCalculatorService {
         this.votesService = votesService;
         this.skipsService = skipsService;
         this.stopsService = stopsService;
+        this.logger = new _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"](ScoreCalculatorService_1.name);
     }
     calculateScore() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             try {
-                _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"].log('Calculating score...');
+                this.logger.log('Calculating score...');
                 /** Get scoring weights */
                 const weights = yield this.weightsService.getWeights();
                 /** Set bulk operation */
@@ -4164,32 +4227,32 @@ let ScoreCalculatorService = class ScoreCalculatorService {
                         article_id: null,
                     };
                     bookmarks
-                        .filter((val) => val._id.article.toString() === article._id.toString())
+                        .filter((val) => { var _a, _b; return ((_a = val._id.article) === null || _a === void 0 ? void 0 : _a.toString()) === ((_b = article._id) === null || _b === void 0 ? void 0 : _b.toString()); })
                         .forEach((result) => {
                         data.saveCount = data.saveCount + result.count;
                     });
                     likes
-                        .filter((val) => val._id.article.toString() === article._id.toString())
+                        .filter((val) => { var _a; return ((_a = val._id.article) === null || _a === void 0 ? void 0 : _a.toString()) === article._id.toString(); })
                         .forEach((result) => {
                         data.likeCount = data.likeCount + result.count;
                     });
                     shares
-                        .filter((val) => val._id.article.toString() === article._id.toString())
+                        .filter((val) => { var _a, _b; return ((_a = val._id.article) === null || _a === void 0 ? void 0 : _a.toString()) === ((_b = article._id) === null || _b === void 0 ? void 0 : _b.toString()); })
                         .forEach((result) => {
                         data.shareCount = data.shareCount + result.count;
                     });
                     votes
-                        .filter((val) => val._id.article.toString() === article._id.toString())
+                        .filter((val) => { var _a, _b; return ((_a = val._id.article) === null || _a === void 0 ? void 0 : _a.toString()) === ((_b = article._id) === null || _b === void 0 ? void 0 : _b.toString()); })
                         .forEach((result) => {
                         data.votingCount = data.votingCount + result.count;
                     });
                     skips
-                        .filter((val) => val._id.article.toString() === article._id.toString())
+                        .filter((val) => { var _a, _b; return ((_a = val._id.article) === null || _a === void 0 ? void 0 : _a.toString()) === ((_b = article._id) === null || _b === void 0 ? void 0 : _b.toString()); })
                         .forEach((result) => {
                         data.skipCount = data.skipCount + result.count;
                     });
                     stops
-                        .filter((val) => val._id.article.toString() === article._id.toString())
+                        .filter((val) => { var _a, _b; return ((_a = val._id.article) === null || _a === void 0 ? void 0 : _a.toString()) === ((_b = article._id) === null || _b === void 0 ? void 0 : _b.toString()); })
                         .forEach((result) => {
                         data.stopCount = data.skipCount + result.count;
                     });
@@ -4208,18 +4271,18 @@ let ScoreCalculatorService = class ScoreCalculatorService {
                         .update({ $set: { score: calculated_score } });
                 });
                 yield bulkOperation.execute();
-                _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"].log('Scores updated...');
+                this.logger.log('Scores updated...');
                 this.calculateTrendingScore(articles, weights);
             }
             catch (error) {
-                _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"].error(error);
+                this.logger.error(error);
             }
         });
     }
     calculateTrendingScore(articles, weights) {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             try {
-                _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"].log('Calculating TRENDING score...');
+                this.logger.log('Calculating TRENDING score...');
                 const bulkOperation = this.articleModel.collection.initializeUnorderedBulkOp();
                 const bookmarks = yield this.bookmarksService.findAndCountTrending();
                 const likes = yield this.likesService.findAndCountTrending();
@@ -4282,10 +4345,10 @@ let ScoreCalculatorService = class ScoreCalculatorService {
                         .update({ $set: { trendingScore: baseScore } });
                 });
                 yield bulkOperation.execute();
-                _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"].log('Trending scores updated...');
+                this.logger.log('Trending scores updated...');
             }
             catch (error) {
-                _nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Logger"].error(error);
+                this.logger.error(error);
             }
         });
     }
@@ -4296,7 +4359,7 @@ Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"])("design:paramtypes", []),
     Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"])("design:returntype", Promise)
 ], ScoreCalculatorService.prototype, "calculateScore", null);
-ScoreCalculatorService = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
+ScoreCalculatorService = ScoreCalculatorService_1 = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Injectable"])(),
     Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__param"])(1, Object(_nestjs_mongoose__WEBPACK_IMPORTED_MODULE_2__["InjectModel"])(_endpoints_articles_schemas_article_schema__WEBPACK_IMPORTED_MODULE_6__["Article"].name)),
     Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"])("design:paramtypes", [typeof (_a = typeof _endpoints_weights_weights_service__WEBPACK_IMPORTED_MODULE_13__["WeightsService"] !== "undefined" && _endpoints_weights_weights_service__WEBPACK_IMPORTED_MODULE_13__["WeightsService"]) === "function" ? _a : Object, typeof (_b = typeof mongoose__WEBPACK_IMPORTED_MODULE_4__["Model"] !== "undefined" && mongoose__WEBPACK_IMPORTED_MODULE_4__["Model"]) === "function" ? _b : Object, typeof (_c = typeof _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_5__["ArticlesService"] !== "undefined" && _endpoints_articles_article_service__WEBPACK_IMPORTED_MODULE_5__["ArticlesService"]) === "function" ? _c : Object, typeof (_d = typeof _endpoints_bookmarks_bookmarks_service__WEBPACK_IMPORTED_MODULE_7__["BookmarksService"] !== "undefined" && _endpoints_bookmarks_bookmarks_service__WEBPACK_IMPORTED_MODULE_7__["BookmarksService"]) === "function" ? _d : Object, typeof (_e = typeof _endpoints_likes_likes_service__WEBPACK_IMPORTED_MODULE_8__["LikesService"] !== "undefined" && _endpoints_likes_likes_service__WEBPACK_IMPORTED_MODULE_8__["LikesService"]) === "function" ? _e : Object, typeof (_f = typeof _endpoints_shares_shares_service__WEBPACK_IMPORTED_MODULE_9__["SharesService"] !== "undefined" && _endpoints_shares_shares_service__WEBPACK_IMPORTED_MODULE_9__["SharesService"]) === "function" ? _f : Object, typeof (_g = typeof _endpoints_votes_votes_service__WEBPACK_IMPORTED_MODULE_12__["VotesService"] !== "undefined" && _endpoints_votes_votes_service__WEBPACK_IMPORTED_MODULE_12__["VotesService"]) === "function" ? _g : Object, typeof (_h = typeof _endpoints_skips_skips_service__WEBPACK_IMPORTED_MODULE_10__["SkipsService"] !== "undefined" && _endpoints_skips_skips_service__WEBPACK_IMPORTED_MODULE_10__["SkipsService"]) === "function" ? _h : Object, typeof (_j = typeof _endpoints_stops_stops_service__WEBPACK_IMPORTED_MODULE_11__["StopsService"] !== "undefined" && _endpoints_stops_stops_service__WEBPACK_IMPORTED_MODULE_11__["StopsService"]) === "function" ? _j : Object])
@@ -4320,7 +4383,9 @@ const environment = {
     production: false,
     news_api_key: '07605b7196ca417d81d6a0ee03f68b2c',
     news_api_url: 'https://newsapi.org/v2/top-headlines',
-    vzla_api_url: 'https://api.venezuelahoy.com/articles'
+    vzla_api_url: 'https://api.venezuelahoy.com/articles',
+    default_vote_pb_user_yes: "606dd8c10611b385b7ef5aa9",
+    default_vote_pb_user_no: "606e5a9f0611b385b7ef5aad"
 };
 
 
@@ -4464,6 +4529,17 @@ module.exports = require("@nestjs/schedule");
 /***/ (function(module, exports) {
 
 module.exports = require("express");
+
+/***/ }),
+
+/***/ "html-to-text":
+/*!*******************************!*\
+  !*** external "html-to-text" ***!
+  \*******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("html-to-text");
 
 /***/ }),
 
