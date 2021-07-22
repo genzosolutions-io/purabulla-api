@@ -2722,7 +2722,7 @@ AppModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_nestjs_common__WEBPACK_IMPORTED_MODULE_1__["Module"])({
         imports: [
             _nestjs_config__WEBPACK_IMPORTED_MODULE_11__["ConfigModule"].forRoot(),
-            _nestjs_mongoose__WEBPACK_IMPORTED_MODULE_4__["MongooseModule"].forRoot(process.env.MONGO_URL, {
+            _nestjs_mongoose__WEBPACK_IMPORTED_MODULE_4__["MongooseModule"].forRoot('mongodb+srv://genzosolutions:vivagenzobro@cluster0.pgnb2.mongodb.net/news-db?retryWrites=true&w=majority', {
                 dbName: 'news-db',
                 useCreateIndex: true,
             }),
