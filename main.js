@@ -2723,6 +2723,7 @@ AppModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
         imports: [
             _nestjs_config__WEBPACK_IMPORTED_MODULE_11__["ConfigModule"].forRoot(),
             _nestjs_mongoose__WEBPACK_IMPORTED_MODULE_4__["MongooseModule"].forRoot(process.env.MONGO_URL, {
+                dbName: 'news-db',
                 useCreateIndex: true,
             }),
             _endpoints_endpoints_module__WEBPACK_IMPORTED_MODULE_7__[/* EndpointsModule */ "a"],
